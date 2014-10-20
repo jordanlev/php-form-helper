@@ -15,10 +15,4 @@ uselessly complicated form classes out there.
 - No documentation
 - 45 sloc you can read without a dedication
 - A perfect 100% code coverage
-
-## Sample
-
-    # to quickly test the sample ...
-    $ php -S localhost:8080
-    $ open http://localhost:8080/sample.php
-
+- **_This fork modified by Jordan Lev: added a `select_options` helper; removed tests and composer file._**
