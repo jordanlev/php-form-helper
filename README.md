@@ -12,7 +12,6 @@ uselessly complicated form classes out there.
 - No form decorators
 - No widgets
 - No extensions
-- No documentation
+- No documentation (just look at the `sample.php` file)
 - 45 sloc you can read without a dedication
-- A perfect 100% code coverage
 - **_This fork modified by Jordan Lev: added a `select_options` helper; removed tests and composer file._**
