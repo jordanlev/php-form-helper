@@ -55,15 +55,17 @@ class Form
 		return isset($array[$key]) ? $array[$key] : $default;
 	}
 
-	//helper for outputting select options
-	public function options($value, $options, $line_separator = "\n", $encoding = 'UTF-8')
+	//Helper for outputting select options.
+	// $name is a field name whose value we will examine to determine which option is selected.
+	// $options is an array of value => label pairs
+	// $line_separator is just for the html output
+	public function options($name, $options, $line_separator = "\n")
 	{
 		$lines = array();
 		foreach ($options as $key => $text) {
-			$h_key = htmlspecialchars($key, ENT_QUOTES, $encoding);
-			$h_text = htmlspecialchars($text, ENT_QUOTES, $encoding);
-			$selected = ($value == $key ? ' selected="selected"' : '');
-			$lines[] = "<option value=\"{$h_key}\"{$selected}>{$h_text}</option>";
+			$value = empty($name) ? null : $this->$name;
+			$selected = ($value === $key ? ' selected="selected"' : '');
+			$lines[] = "<option value=\"{$key}\"{$selected}>{$text}</option>";
 		}
 		return implode($line_separator, $lines);
 	}

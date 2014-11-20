@@ -1,19 +1,14 @@
 <?php
 require 'Form.php';
 
-assert(version_compare(PHP_VERSION, '5.4', '>='), '
-PHP 5.4 required
-
-This sample make uses 5.4 for the closure $this support, always available <?=,
-short array syntax and built-in web server for convenience only.  5.4 is not
-required to use Form itself (it should work with 5.3 and higher).');
+function h($s) { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
 
 // Defining the form using a class because it's actually cool to name forms.
 // But we could have also pass the fields to the constructor.
-
 class RegistrationForm extends Form {
 	public function init() {
-		$this->fields = [
+		$form = $this; //so $this can be accessed in closures
+		$this->fields = array(
 			'email' =>
 				function($value) {
 					Form::check(!empty($value), 'Email is required');
@@ -24,14 +19,14 @@ class RegistrationForm extends Form {
 					Form::check(strlen($value) >= 6, 'Password must be at least 6 characters');
 				},
 			'password_confirmation' =>
-				function($value) {
-					Form::check($this->password == $value, 'Password confirmation must match');
+				function($value) use ($form) {
+					Form::check($form->password == $value, 'Password confirmation must match');
 				},
 			'picture' =>
 				function($value) {
 					Form::check($value['error'] != UPLOAD_ERR_NO_FILE, 'Picture is required');
 					Form::check($value['size'] < 307200, 'Please upload a picture less than 300k');
-					Form::check(in_array($value['type'], ['image/gif', 'image/jpeg', 'image/png']),
+					Form::check(in_array($value['type'], array('image/gif', 'image/jpeg', 'image/png')),
 						'Uploaded picture must be a gif, jpeg or png');
 				},
 			'topic' =>
@@ -39,10 +34,11 @@ class RegistrationForm extends Form {
 					Form::check(!empty($value), 'Topic is required');
 				},
 			'comments' => null, //no validation is needed on this field
-		];
+		);
 	}
 
 }
+
 
 // Do this in your controller or something
 
@@ -53,7 +49,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 <?php if ($form->errors): ?>
 	<ul class="errors">
 		<?php foreach ($form->errors as $key => $message): ?>
-			<li><?= htmlentities($message) ?></li>
+			<li><?= h($message) ?></li>
 		<?php endforeach ?>
 	</ul>
 <?php elseif (!empty($form->values)): ?>
@@ -72,11 +68,11 @@ $form = new RegistrationForm($_POST + $_FILES);
 	<div class="<?= $form->error('email', 'error') ?>">
 		<label>Email</label>
 		<div>
-			<input type="text" id="email" name="email" value="<?= htmlentities($form->email) ?>">
+			<input type="text" id="email" name="email" value="<?= h($form->email) ?>">
 		</div>
 		<?php if ($form->error('email')): ?>
 			<div class="error">
-				<?= htmlentities($form->error('email')) ?>
+				<?= h($form->error('email')) ?>
 			</div>
 		<?php endif ?>
 	</div>
@@ -84,11 +80,11 @@ $form = new RegistrationForm($_POST + $_FILES);
 	<div class="<?= $form->error('password', 'error') ?>">
 		<label>Password</label>
 		<div>
-			<input type="password" id="password" name="password" value="<?= htmlentities($form->password) ?>">
+			<input type="password" id="password" name="password" value="<?= h($form->password) ?>">
 		</div>
 		<?php if ($form->error('password')): ?>
 			<div class="error">
-				<?= htmlentities($form->error('password')) ?>
+				<?= h($form->error('password')) ?>
 			</div>
 		<?php endif ?>
 	</div>
@@ -96,11 +92,11 @@ $form = new RegistrationForm($_POST + $_FILES);
 	<div class="<?= $form->error('password_confirmation', 'error') ?>">
 		<label>Confirm</label>
 		<div>
-			<input type="password" id="password_confirmation" name="password_confirmation" value="<?= htmlentities($form->password_confirmation) ?>">
+			<input type="password" id="password_confirmation" name="password_confirmation" value="<?= h($form->password_confirmation) ?>">
 		</div>
 		<?php if ($form->error('password_confirmation')): ?>
 			<div class="error">
-				<?= htmlentities($form->error('password_confirmation')) ?>
+				<?= h($form->error('password_confirmation')) ?>
 			</div>
 		<?php endif ?>
 	</div>
@@ -112,7 +108,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 		</div>
 		<?php if ($form->error('picture')): ?>
 			<div class="error">
-				<?= htmlentities($form->error('picture')) ?>
+				<?= h($form->error('picture')) ?>
 			</div>
 		<?php endif ?>
 	</div>
@@ -121,17 +117,17 @@ $form = new RegistrationForm($_POST + $_FILES);
 		<label>Topic</label>
 		<div>
 			<select id="topic" name="topic">
-				<?=$form->options($form->topic, array(
+				<?= $form->options('topic', array(
 					'' => '--Choose One--',
 					'first' => 'First Topic',
 					'second' => 'Sectond Topic',
 					'third' => 'Yet Another One',
-				))?>
+				)) ?>
 			</select>
 		</div>
 		<?php if ($form->error('topic')): ?>
 			<div class="error">
-				<?= htmlentities($form->error('topic')) ?>
+				<?= h($form->error('topic')) ?>
 			</div>
 		<?php endif ?>
 	</div>
