@@ -70,4 +70,3 @@ class Form
 		return implode($line_separator, $lines);
 	}
 }
-
