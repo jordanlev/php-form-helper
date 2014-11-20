@@ -44,6 +44,10 @@ class Form
 		return $this->get($this->values, $name);
 	}
 
+	//If there is an error for the given field,
+	// returns the given $message (if provided),
+	// or the error message (if no $message is provided).
+	//Returns null if the field has no errors.
 	public function error($name, $message = null)
 	{
 		$value = $this->get($this->errors, $name);

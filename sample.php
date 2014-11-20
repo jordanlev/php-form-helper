@@ -40,6 +40,11 @@ class RegistrationForm extends Form {
 					Form::check(!empty($value), 'Topic is required');
 				},
 			'comments' => null, //no validation is needed on this field
+			'agree_to_terms' =>
+				function($value) {
+					Form::check(!empty($value), 'You must check the "Agree to Terms" box');
+				},
+			'misc_choices' => null, //there will be several checkboxes with name="misc_choices[]", to demonstrate how to work with multiple-selection lists (they are tricky!)
 		);
 	}
 
@@ -58,13 +63,14 @@ $form = new RegistrationForm($_POST + $_FILES);
 			<li><?= h($message) ?></li>
 		<?php endforeach ?>
 	</ul>
-<?php elseif ($form->values): /* save form data and display success message / redirect / etc... */ ?>
-	
+<?php elseif ($form->values): /* save form data and display success message, redirect, etc... */ ?>
 	<div>
-		Email: <?= $form->email ?><br>
-		Password: <?= $form->password ?><br>
-		Picture: <?= $form->picture['name'] ?><br>
-		Topic: <?= $form->topic ?><br>
+		Email: <?= h($form->email) ?><br>
+		Password: <?= h($form->password) ?><br>
+		Picture: <?= h($form->picture['name']) ?><br>
+		Topic: <?= h($form->topic) ?><br>
+		Comments: <?= nl2br(h($form->comments)) ?><br>
+		Misc. Choices: <?= h(implode(', ', array_keys($form->misc_choices))) ?><br>
 	</div>
 <?php endif ?>
 
@@ -73,7 +79,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 <form action="" method="post" enctype="multipart/form-data">
 
 	<div class="<?= $form->error('email', 'error') ?>">
-		<label>Email</label>
+		<label for="email">Email</label>
 		<div>
 			<input type="text" id="email" name="email" value="<?= h($form->email) ?>">
 		</div>
@@ -85,7 +91,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 	</div>
 
 	<div class="<?= $form->error('password', 'error') ?>">
-		<label>Password</label>
+		<label for="password">Password</label>
 		<div>
 			<input type="password" id="password" name="password" value="<?= h($form->password) ?>">
 		</div>
@@ -97,7 +103,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 	</div>
 
 	<div class="<?= $form->error('password_confirmation', 'error') ?>">
-		<label>Confirm</label>
+		<label for="password_confirmation">Confirm</label>
 		<div>
 			<input type="password" id="password_confirmation" name="password_confirmation" value="<?= h($form->password_confirmation) ?>">
 		</div>
@@ -109,7 +115,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 	</div>
 
 	<div class="<?= $form->error('picture', 'error') ?>">
-		<label>Picture</label>
+		<label for="picture">Picture</label>
 		<div>
 			<input type="file" id="picture" name="picture">
 		</div>
@@ -121,7 +127,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 	</div>
 
 	<div class="<?= $form->error('topic', 'error') ?>">
-		<label>Topic</label>
+		<label for="topic">Topic</label>
 		<div>
 			<select id="topic" name="topic">
 				<?= $form->options('topic', array(
@@ -138,7 +144,52 @@ $form = new RegistrationForm($_POST + $_FILES);
 			</div>
 		<?php endif ?>
 	</div>
+	
+	<div>
+		<label for="comments">Comments (optional):</label>
+		<textarea id="comments" name="comments"><?= h($form->comments) ?></textarea>
+	</div>
+	
+	<div class="<?= $form->error('agree_to_terms', 'error') ?>">
+		<div>
+			<label>
+				<input type="checkbox" id="agree_to_terms" name="agree_to_terms" value="1" <?= $form->agree_to_terms ? 'checked' : '' ?>>
+				I agree to the terms &amp; conditions
+			</label>
+		</div>
+		<?php if ($form->error('agree_to_terms')): ?>
+			<div class="error">
+				<?= h($form->error('agree_to_terms')) ?>
+			</div>
+		<?php endif ?>
+	</div>
 
+	<div>
+		<label>
+			<input type="checkbox" name="misc_choices[7]" value="1" <?= empty($form->misc_choices[7]) ? '' : 'checked' ?>>
+			Test Item #7
+		</label>
+		<br>
+
+		<label>
+			<input type="checkbox" name="misc_choices[9]" value="1" <?= empty($form->misc_choices[9]) ? '' : 'checked' ?>>
+			Test Item #9
+		</label>
+		<br>
+
+		<label>
+			<input type="checkbox" name="misc_choices[15]" value="1" <?= empty($form->misc_choices[15]) ? '' : 'checked' ?>>
+			Test Item #15
+		</label>
+		<br>
+
+		<label>
+			<input type="checkbox" name="misc_choices[pizza]" value="1" <?= empty($form->misc_choices['pizza']) ? '' : 'checked' ?>>
+			I like pizza!
+		</label>
+		<br>
+	</div>
+	
 	<div>
 		<input type="submit" value="Submit">
 	</div>
