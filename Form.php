@@ -65,12 +65,14 @@ class Form
 	// $line_separator is just for the html output
 	public function options($name, $options, $line_separator = "\n")
 	{
+		$value = empty($name) ? null : $this->$name;
+
 		$lines = array();
 		foreach ($options as $key => $text) {
-			$value = empty($name) ? null : $this->$name;
-			$selected = ($value === $key ? ' selected="selected"' : '');
+			$selected = ($value == $key ? ' selected="selected"' : '');
 			$lines[] = "<option value=\"{$key}\"{$selected}>{$text}</option>";
 		}
+
 		return implode($line_separator, $lines);
 	}
 }
