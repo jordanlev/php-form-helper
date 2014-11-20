@@ -1,6 +1,7 @@
 <?php
 require 'Form.php';
 
+//helper function for markup (unrelated to the Form class... just to make sample markup cleaner)
 function h($s) { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
 
 // Defining the form using a class because it's actually cool to name forms.
@@ -24,6 +25,11 @@ class RegistrationForm extends Form {
 				},
 			'picture' =>
 				function($value) {
+					//NOTE: When a check fails, the remaining checks are NOT run.
+					// This means you will only ever get 1 error message per field.
+					// (Actually, even if all checks were run, you'd still only wind up
+					// with 1 error message [the last one] because the Form class
+					// does not store multiple errors per field.)
 					Form::check($value['error'] != UPLOAD_ERR_NO_FILE, 'Picture is required');
 					Form::check($value['size'] < 307200, 'Please upload a picture less than 300k');
 					Form::check(in_array($value['type'], array('image/gif', 'image/jpeg', 'image/png')),
@@ -46,13 +52,14 @@ $form = new RegistrationForm($_POST + $_FILES);
 ?>
 
 
-<?php if ($form->errors): ?>
+<?php if ($form->errors): /* re-display form with validation errors... */ ?>
 	<ul class="errors">
 		<?php foreach ($form->errors as $key => $message): ?>
 			<li><?= h($message) ?></li>
 		<?php endforeach ?>
 	</ul>
-<?php elseif (!empty($form->values)): ?>
+<?php elseif ($form->values): /* save form data and display success message / redirect / etc... */ ?>
+	
 	<div>
 		Email: <?= $form->email ?><br>
 		Password: <?= $form->password ?><br>
