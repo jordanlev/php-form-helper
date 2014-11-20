@@ -1,5 +1,7 @@
 <?php
 
+/* https://github.com/jordanlev/php-form-helper */
+
 class Form
 {
 	public $values = array();
@@ -14,10 +16,12 @@ class Form
 
 		if ($values) {
 			foreach ($this->fields as $name => $callback) {
-				try {
-					call_user_func($callback, $this->get($values, $name));
-				} catch (DomainException $e) {
-					$this->errors[$name] = $e->getMessage();
+				if (is_callable($callback)) {
+					try {
+						call_user_func($callback, $this->get($values, $name));
+					} catch (DomainException $e) {
+						$this->errors[$name] = $e->getMessage();
+					}
 				}
 			}
 		}
@@ -51,12 +55,13 @@ class Form
 		return isset($array[$key]) ? $array[$key] : $default;
 	}
 
-	public static function select_options($value, $options, $line_separator = "\n")
+	//helper for outputting select options
+	public function options($value, $options, $line_separator = "\n", $encoding = 'UTF-8')
 	{
 		$lines = array();
 		foreach ($options as $key => $text) {
-			$h_key = htmlspecialchars($key, ENT_QUOTES, 'UTF-8');
-			$h_text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+			$h_key = htmlspecialchars($key, ENT_QUOTES, $encoding);
+			$h_text = htmlspecialchars($text, ENT_QUOTES, $encoding);
 			$selected = ($value == $key ? ' selected="selected"' : '');
 			$lines[] = "<option value=\"{$h_key}\"{$selected}>{$h_text}</option>";
 		}

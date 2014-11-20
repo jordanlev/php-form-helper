@@ -37,7 +37,8 @@ class RegistrationForm extends Form {
 			'topic' =>
 				function($value) {
 					Form::check(!empty($value), 'Topic is required');
-				}
+				},
+			'comments' => null, //no validation is needed on this field
 		];
 	}
 
@@ -64,6 +65,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 	</div>
 <?php endif ?>
 
+<style>.error { color: red; }</style>
 
 <form action="" method="post" enctype="multipart/form-data">
 
@@ -119,7 +121,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 		<label>Topic</label>
 		<div>
 			<select id="topic" name="topic">
-				<?=$form::select_options($form->topic, array(
+				<?=$form->options($form->topic, array(
 					'' => '--Choose One--',
 					'first' => 'First Topic',
 					'second' => 'Sectond Topic',
@@ -127,9 +129,9 @@ $form = new RegistrationForm($_POST + $_FILES);
 				))?>
 			</select>
 		</div>
-		<?php if ($form->error('picture')): ?>
+		<?php if ($form->error('topic')): ?>
 			<div class="error">
-				<?= htmlentities($form->error('picture')) ?>
+				<?= htmlentities($form->error('topic')) ?>
 			</div>
 		<?php endif ?>
 	</div>
