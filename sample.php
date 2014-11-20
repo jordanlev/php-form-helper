@@ -8,7 +8,6 @@ function h($s) { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
 // But we could have also pass the fields to the constructor.
 class RegistrationForm extends Form {
 	public function init() {
-		$form = $this; //so $this can be accessed in closures
 		$this->fields = array(
 			'email' =>
 				function($value) {
@@ -20,7 +19,7 @@ class RegistrationForm extends Form {
 					Form::check(strlen($value) >= 6, 'Password must be at least 6 characters');
 				},
 			'password_confirmation' =>
-				function($value) use ($form) {
+				function($value, $form) { //accept 2nd arg so other fields can be referenced within the closure. Note that you could instead reference `$this` inside the closure (or in php 5.3, assign `$form = $this` at the top of the init() function and then put `use ($variable)` on the anonymous function), but that would only work if you are defining fields in the `init()` method (not passing them into the constructor).
 					Form::check($form->password == $value, 'Password confirmation must match');
 				},
 			'picture' =>

@@ -18,7 +18,7 @@ class Form
 			foreach ($this->fields as $name => $callback) {
 				if (is_callable($callback)) {
 					try {
-						call_user_func($callback, $this->get($values, $name));
+						call_user_func($callback, $this->get($values, $name), $this);
 					} catch (DomainException $e) {
 						$this->errors[$name] = $e->getMessage();
 					}
