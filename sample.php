@@ -4,63 +4,66 @@ require 'Form.php';
 //helper function for markup (unrelated to the Form class... just to make sample markup cleaner)
 function h($s) { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
 
-// Defining the form using a class because it's actually cool to name forms.
-// But we could have also pass the fields to the constructor.
-class RegistrationForm extends Form {
-	public function init() {
-		$this->fields = array(
-			'email' =>
-				function($value) {
-					Form::check(!empty($value), 'Email is required');
-					Form::check(filter_var($value, FILTER_VALIDATE_EMAIL), 'Invalid email');
-				},
-			'password' =>
-				function($value) {
-					Form::check(strlen($value) >= 6, 'Password must be at least 6 characters');
-				},
-			'password_confirmation' =>
-				function($value, $form) { //accept 2nd arg so other fields can be referenced within the closure. Note that you could instead reference `$this` inside the closure (or in php 5.3, assign `$form = $this` at the top of the init() function and then put `use ($variable)` on the anonymous function), but that would only work if you are defining fields in the `init()` method (not passing them into the constructor).
-					Form::check($form->password == $value, 'Password confirmation must match');
-				},
-			'picture' =>
-				function($value) {
-					//NOTE: When a check fails, the remaining checks are NOT run.
-					// This means you will only ever get 1 error message per field.
-					// (Actually, even if all checks were run, you'd still only wind up
-					// with 1 error message [the last one] because the Form class
-					// does not store multiple errors per field.)
-					Form::check($value['error'] != UPLOAD_ERR_NO_FILE, 'Picture is required');
-					Form::check($value['size'] < 307200, 'Please upload a picture less than 300k');
-					Form::check(in_array($value['type'], array('image/gif', 'image/jpeg', 'image/png')),
-						'Uploaded picture must be a gif, jpeg or png');
-				},
-			'topic' =>
-				function($value) {
-					Form::check(!empty($value), 'Topic is required');
-				},
-			'comments' => null, //no validation is needed on this field
-			'agree_to_terms' =>
-				function($value) {
-					Form::check(!empty($value), 'You must check the "Agree to Terms" box');
-				},
-			'misc_choices' => null, //there will be several checkboxes with name="misc_choices[]", to demonstrate how to work with multiple-selection lists (they are tricky!)
-		);
+// Do this in your controller or something
+$form = new Form($_POST + $_FILES, array(
+		'email',
+		'password',
+		'password_confirmation',
+		'picture',
+		'topic',
+		'comments',
+		'agree_to_terms',
+		'misc_choices', //there will be several checkboxes with name="misc_choices[]", to demonstrate how to work with multiple-selection lists (they are tricky!)
+), function ($form, $error) {
+	if (empty($form->email)) {
+		$error->email = 'Email is required';
+	} else if (!filter_var($form->email, FILTER_VALIDATE_EMAIL)) {
+		$error->email = 'Invalid email';
 	}
 
-}
+	if (empty($form->password)) {
+		$error->password = 'Password is required';
+	} else {
+		if (strlen($form->password) < 6) {
+			$error->password = 'Password must be at least 6 characters';
+		}
+		if (!preg_match('/[0-9]+/', $form->password)) {
+			$error->password = 'Password must contain at least 1 digit';
+		}
+		if ($form->password != $form->password_confirmation) {
+			$error->password_confirmation = 'Password confirmation must match';
+		}
+	}
 
+	if ($form->picture['error'] == UPLOAD_ERR_NO_FILE) {
+		$error->picture = 'Picture is required';
+	} else {
+		if ($form->picture['size'] > 307200) {
+			$error->picture = 'Please upload a picture less than 300k';
+		}
+		if (!in_array($form->picture['type'], array('image/gif', 'image/jpeg', 'image/png'))) {
+			$error->picture = 'Uploaded picture must be a gif, jpeg or png';
+		}
+	}
 
-// Do this in your controller or something
+	if (empty($form->topic)) {
+		$error->topic = 'Topic is required';
+	}
 
-$form = new RegistrationForm($_POST + $_FILES);
+	if (empty($form->agree_to_terms)) {
+		$error->agree_to_terms = 'You must check the "Agree to Terms" box';
+	}
+
+	return $error;
+});
 ?>
 
 
 <?php if ($form->errors): /* re-display form with validation errors... */ ?>
 	<ul class="errors">
-		<?php foreach ($form->errors as $key => $message): ?>
-			<li><?= h($message) ?></li>
-		<?php endforeach ?>
+		<?php foreach ($form->errors as $error): ?>
+			<li><?= $error ?></li>
+		<?php endforeach; ?>
 	</ul>
 <?php elseif ($form->values): /* save form data and display success message, redirect, etc... */ ?>
 	<div>
@@ -84,7 +87,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 		</div>
 		<?php if ($form->error('email')): ?>
 			<div class="error">
-				<?= h($form->error('email')) ?>
+				<?= $form->error('email') ?>
 			</div>
 		<?php endif ?>
 	</div>
@@ -96,7 +99,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 		</div>
 		<?php if ($form->error('password')): ?>
 			<div class="error">
-				<?= h($form->error('password')) ?>
+				<?= $form->error('password') ?>
 			</div>
 		<?php endif ?>
 	</div>
@@ -108,7 +111,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 		</div>
 		<?php if ($form->error('password_confirmation')): ?>
 			<div class="error">
-				<?= h($form->error('password_confirmation')) ?>
+				<?= $form->error('password_confirmation') ?>
 			</div>
 		<?php endif ?>
 	</div>
@@ -120,7 +123,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 		</div>
 		<?php if ($form->error('picture')): ?>
 			<div class="error">
-				<?= h($form->error('picture')) ?>
+				<?= $form->error('picture') ?>
 			</div>
 		<?php endif ?>
 	</div>
@@ -139,16 +142,16 @@ $form = new RegistrationForm($_POST + $_FILES);
 		</div>
 		<?php if ($form->error('topic')): ?>
 			<div class="error">
-				<?= h($form->error('topic')) ?>
+				<?= $form->error('topic') ?>
 			</div>
 		<?php endif ?>
 	</div>
-	
+
 	<div>
 		<label for="comments">Comments (optional):</label>
 		<textarea id="comments" name="comments"><?= h($form->comments) ?></textarea>
 	</div>
-	
+
 	<div class="<?= $form->error('agree_to_terms', 'error') ?>">
 		<div>
 			<label>
@@ -158,7 +161,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 		</div>
 		<?php if ($form->error('agree_to_terms')): ?>
 			<div class="error">
-				<?= h($form->error('agree_to_terms')) ?>
+				<?= $form->error('agree_to_terms') ?>
 			</div>
 		<?php endif ?>
 	</div>
@@ -188,7 +191,7 @@ $form = new RegistrationForm($_POST + $_FILES);
 		</label>
 		<br>
 	</div>
-	
+
 	<div>
 		<input type="submit" value="Submit">
 	</div>

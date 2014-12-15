@@ -4,59 +4,75 @@
 
 class Form
 {
+	public $fields = array();
 	public $values = array();
 	public $errors = array();
-	public $fields = array();
 
-	public function __construct(array $values, $fields = null)
+	public $form_error_separator = '<br>'; //inserted between individual error messages when `echo $form->errors` is called
+	public $field_error_separator = ', '; //inserted between individual error messages when `echo $form->error('field')` is called
+
+	public function __construct(array $values, array $fields = null, $validate = null, $form_error_separator = null, $field_error_separator = null)
 	{
-		$this->init();
+		if (!is_null($form_error_separator)) {
+			$this->form_error_separator = $form_error_separator;
+		}
+		if (!is_null($field_error_separator)) {
+			$this->field_error_separator = $field_error_separator;
+		}
+
 		if ($fields) $this->fields = $fields;
-		$this->values = array_intersect_key($values, $this->fields);
+		$this->values = array_intersect_key($values, array_flip($this->fields));
 
 		if ($values) {
-			foreach ($this->fields as $name => $callback) {
-				if (is_callable($callback)) {
-					try {
-						call_user_func($callback, $this->get($values, $name), $this);
-					} catch (DomainException $e) {
-						$this->errors[$name] = $e->getMessage();
-					}
-				}
-			}
+			$validate = is_callable($validate) ? $validate : array($this, 'validate');
+			$error = new FormErrorsCollection($this->form_error_separator, $this->field_error_separator);
+			$errors = call_user_func($validate, $this, $error);
+			$this->errors = count($errors) ? $errors : array(); //set to empty array if no errors so `if ($form->errors)` works as expected
 		}
 	}
 
-	protected function init()
+	public function validate($form, $error)
 	{
-		// initialize $fields when subclassing
-	}
-
-	public static function check($expression, $message)
-	{
-		if (false == $expression) {
-			throw new DomainException($message);
-		}
+		return $error;
 	}
 
 	public function __get($name)
 	{
-		return $this->get($this->values, $name);
+		return isset($this->values[$name]) ? $this->values[$name] : null;
+	}
+
+	public function __isset($name)
+	{
+		return isset($this->values[$name]);
 	}
 
 	//If there is an error for the given field,
 	// returns the given $message (if provided),
 	// or the error message (if no $message is provided).
 	//Returns null if the field has no errors.
-	public function error($name, $message = null)
+	public function error($field, $message = null)
 	{
-		$value = $this->get($this->errors, $name);
-		return $message && $value ? $message : $value;
+		$error = $this->errors ? $this->errors->get($field) : null;
+		return $message && $error ? $message : $error;
 	}
 
-	private function get(array $array, $key, $default = null)
+	//Returns the list of errors as an array (instead of the custom error objects).
+	//You probably shouldn't need to ever use this, but it's here if you do.
+	//If a $field is provided, we return an array of error messages for that field.
+	//Otherwise, we return an array of all error messages.
+	public function errors($field = null)
 	{
-		return isset($array[$key]) ? $array[$key] : $default;
+		$messages = array();
+
+		$errors = is_null($field) ? $this->errors : $this->error($field);
+
+		if ($errors) {
+			foreach ($errors as $error) {
+				$messages[] = $error;
+			}
+		}
+
+		return $messages;
 	}
 
 	//Helper for outputting select options.
@@ -75,4 +91,83 @@ class Form
 
 		return implode($line_separator, $lines);
 	}
+}
+
+//Allows errors to be iterated over OR accessed on a per-field basis.
+//If you "foreach" over this class, it treats all fields' errors as a single flat list.
+//If you call the ->get() method, you can retrieve errors for just the designated field.
+class FormErrorsCollection implements Iterator, Countable
+{
+	private $errors_flat = array(); //array of all error messages, regardless of field
+	private $errors_grouped = array(); //array of FormFieldErrors objects, one each per field
+
+	private $form_error_separator;
+	private $field_error_separator;
+
+	public function __construct($form_error_separator, $field_error_separator)
+	{
+		$this->form_error_separator = $form_error_separator;
+		$this->field_error_separator = $field_error_separator;
+	}
+
+	public function __set($name, $value)
+	{
+		$this->errors_flat[] = $value;
+
+		if (!array_key_exists($name, $this->errors_grouped)) {
+			$this->errors_grouped[$name] = new FormFieldErrors($this->field_error_separator);
+		}
+		$this->errors_grouped[$name]->add($value);
+	}
+
+	public function __toString() {
+		return implode($this->form_error_separator, $this->errors_flat);
+	}
+
+	public function get($field)
+	{
+		return array_key_exists($field, $this->errors_grouped) ? $this->errors_grouped[$field] : null;
+	}
+
+	/*** Iterator Implementation ***/
+	function rewind() { reset($this->errors_flat); }
+	function current() { return current($this->errors_flat); }
+	function key() { return key($this->errors_flat); }
+	function next() { next($this->errors_flat); }
+	function valid() { return (key($this->errors_flat) !== null); }
+
+	/*** Countable Implementation ***/
+	function count() { return count($this->errors_flat); }
+}
+
+//Basically an array, but we wanted the __toString functionality
+// (so you can just echo a form's error if you know it can only have 1).
+class FormFieldErrors implements Iterator, Countable {
+	private $errors = array();
+	private $separator;
+
+	public function __construct($separator)
+	{
+		$this->separator = $separator;
+	}
+
+	public function __toString()
+	{
+		return implode($this->separator, $this->errors);
+	}
+
+	public function add($error)
+	{
+		$this->errors[] = $error;
+	}
+
+	/*** Iterator Implementation ***/
+	function rewind() { reset($this->errors); }
+	function current() { return current($this->errors); }
+	function key() { return key($this->errors); }
+	function next() { next($this->errors); }
+	function valid() { return (key($this->errors) !== null); }
+
+	/*** Countable Implementation ***/
+	function count() { return count($this->errors); }
 }

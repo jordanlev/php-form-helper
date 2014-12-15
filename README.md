@@ -1,6 +1,6 @@
 # php-form-helper
 
-A PHP 5.3 Form helper class.
+A PHP 5.3 Form helper class that stays out of your markup.
 
 It's late, I can't sleep, and I'm sick of those
 uselessly complicated form classes out there.
@@ -13,5 +13,12 @@ uselessly complicated form classes out there.
 - No widgets
 - No extensions
 - No documentation (just look at the `sample.php` file)
-- 45 sloc you can read without a dedication
-- **_This fork modified by Jordan Lev: added a `select_options` helper; removed tests and composer file._**
+
+## Jordan Lev's modifications in this fork:
+- Fields can have more than 1 error at a time
+- Fields are declared separately from validations (because there isn't always a 1:1 correlation)
+- All validations are handled within a single function (to allow for more flexibility with the logic)
+- Side benefit of the architectural change is that you can have a data model provide the field list and validation function, without it needing to know as much about how the Form class works (all it needs to know is that `$form->field` gives you a value and `$error->field` adds an error to a field)
+- Removed use of Exceptions because it prevented more than 1 error per field (and arguably is conceptually wrong -- see http://martinfowler.com/articles/replaceThrowWithNotification.html)
+- Removed tests and composer files
+- Added a helper function for outputting `select` options (this is conceptually unrelated to the basic class functionality, but it is so darned useful I couldn't resist [also, unlike every other form element, there is *never* a need to customize the markup of an `<option>` tag so it is the one exception to the "stay out of my markup" rule])
