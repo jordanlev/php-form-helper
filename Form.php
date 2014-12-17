@@ -11,7 +11,9 @@ class Form
 	public $form_error_separator = '<br>'; //inserted between individual error messages when `echo $form->errors` is called
 	public $field_error_separator = ', '; //inserted between individual error messages when `echo $form->error('field')` is called
 
-	public function __construct(array $values, array $fields = null, $validate = null, $form_error_separator = null, $field_error_separator = null)
+	private $validation_callback;
+
+	public function __construct(array $values, array $fields, $validation_callback, $form_error_separator = null, $field_error_separator = null)
 	{
 		if (!is_null($form_error_separator)) {
 			$this->form_error_separator = $form_error_separator;
@@ -20,20 +22,18 @@ class Form
 			$this->field_error_separator = $field_error_separator;
 		}
 
-		if ($fields) $this->fields = $fields;
-		$this->values = array_intersect_key($values, array_flip($this->fields));
-
-		if ($values) {
-			$validate = is_callable($validate) ? $validate : array($this, 'validate');
-			$error = new FormErrorsCollection($this->form_error_separator, $this->field_error_separator);
-			$errors = call_user_func($validate, $this, $error);
-			$this->errors = count($errors) ? $errors : array(); //set to empty array if no errors so `if ($form->errors)` works as expected
-		}
+		$this->fields = $fields;
+		$this->values = array_intersect_key($values, array_flip($fields));
+		$this->validation_callback = $validation_callback;
 	}
 
-	public function validate($form, $error)
+	public function validate()
 	{
-		return $error;
+		$error = new FormErrorsCollection($this->form_error_separator, $this->field_error_separator);
+		$errors = call_user_func($this->validation_callback, $this, $error);
+
+		$this->errors = count($errors) ? $errors : array(); //set to empty array if no errors so `if ($form->errors)` works as expected
+		return !$this->errors;
 	}
 
 	public function __get($name)
