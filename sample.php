@@ -58,8 +58,6 @@ require 'Form.php';
 		if (empty($form->misc_choices)) {
 			$form->misc_choices = array();
 		}
-
-		return $error;
 	};
 	
 	if ($_POST || $_FILES) {

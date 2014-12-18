@@ -30,9 +30,9 @@ class Form
 	public function validate()
 	{
 		$error = new FormErrorsCollection($this->form_error_separator, $this->field_error_separator);
-		$errors = call_user_func($this->validation_callback, $this, $error);
+		call_user_func($this->validation_callback, $this, $error);
 
-		$this->errors = count($errors) ? $errors : array(); //set to empty array if no errors so `if ($form->errors)` works as expected
+		$this->errors = count($error) ? $error : array(); //set to empty array if no errors so `if ($form->errors)` works as expected
 		return !$this->errors;
 	}
 
