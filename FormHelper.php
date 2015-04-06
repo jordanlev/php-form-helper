@@ -2,7 +2,7 @@
 
 /* https://github.com/jordanlev/php-form-helper */
 
-class Form
+class FormHelper
 {
 	public $fields = array();
 	public $values = array();

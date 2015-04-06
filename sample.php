@@ -1,6 +1,6 @@
 <?php
 
-require 'Form.php';
+require 'FormHelper.php';
 
 //set up the form...
 
@@ -66,7 +66,7 @@ require 'Form.php';
 		$data = array('comments' => 'Testing 1 2 3' /* ... you could pre-populate the form with defaults or database data here if you like */ );
 	}
 
-	$form = new Form($data, $fields, $validation);
+	$form = new FormHelper($data, $fields, $validation);
 
 
 
