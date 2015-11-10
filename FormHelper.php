@@ -24,6 +24,7 @@ class FormHelper
 
 		$this->fields = $fields;
 		$this->values = array_intersect_key($values, array_flip($fields));
+		array_walk_recursive($this->values, function(&$value) { $value = is_string($value) ? trim($value) : $value; });
 		$this->validation_callback = $validation_callback;
 	}
 
