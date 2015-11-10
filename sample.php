@@ -88,6 +88,7 @@ require 'FormHelper.php';
 ?>
 
 	<?php if ($form->errors) { /* re-display form with validation errors... */ ?>
+		<p>Please correct the following errors:</p>
 		<ul class="errors">
 			<?php foreach ($form->errors as $error) { ?>
 				<li><?=$error?></li>
@@ -151,12 +152,14 @@ require 'FormHelper.php';
 			<label for="topic">Topic</label>
 			<div>
 				<select id="topic" name="topic">
-					<?=$form->options('topic', array(
+					<?php foreach (array(
 						'' => '--Choose One--',
 						'first' => 'First Topic',
 						'second' => 'Sectond Topic',
 						'third' => 'Yet Another One',
-					))?>
+					) as $value => $label) { ?>
+						<option value="<?=h($value)?>" <?=($value == $form->topic ? 'selected' : '')?>><?=h($label)?></option>
+					<?php } ?>
 				</select>
 			</div>
 			<?php if ($form->error('topic')) { ?>

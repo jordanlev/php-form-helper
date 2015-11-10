@@ -75,22 +75,6 @@ class FormHelper
 		return $messages;
 	}
 
-	//Helper for outputting select options.
-	// $name is a field name whose value we will examine to determine which option is selected.
-	// $options is an array of value => label pairs
-	// $line_separator is just for the html output
-	public function options($name, $options, $line_separator = "\n")
-	{
-		$value = empty($name) ? null : $this->$name;
-
-		$lines = array();
-		foreach ($options as $key => $text) {
-			$selected = ($value == $key ? ' selected="selected"' : '');
-			$lines[] = "<option value=\"{$key}\"{$selected}>{$text}</option>";
-		}
-
-		return implode($line_separator, $lines);
-	}
 }
 
 //Allows errors to be iterated over OR accessed on a per-field basis.

@@ -2,8 +2,8 @@
 
 A PHP 5.3 Form helper class that stays out of your markup.
 
-It's late, I can't sleep, and I'm sick of those
-uselessly complicated form classes out there.
+@4d47 (author of the original version from which this was forked and modified) puts it well: "It's late, I can't sleep, and I'm sick of those
+uselessly complicated form classes out there."
 
 ## Features
 
@@ -23,4 +23,3 @@ uselessly complicated form classes out there.
 - Removed ability to easily subclass... you should just always pass everything into the constructor now
 - Removed use of Exceptions because it prevented more than 1 error per field (and arguably is conceptually wrong -- see http://martinfowler.com/articles/replaceThrowWithNotification.html)
 - Removed tests and composer files (because I didn't use them)
-- Added a helper function for outputting `select` options (which is conceptually unrelated to the other class functionality, but it is so darned useful I couldn't resist [also, unlike every other form element, there is *never* a need to customize the markup of an `<option>` tag so it is the one exception to the "stay out of my markup" rule])
